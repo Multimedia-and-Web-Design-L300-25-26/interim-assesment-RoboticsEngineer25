@@ -2,10 +2,9 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    // Mongoose connection options for production
     const options = {
-      maxPoolSize: 10, // Maximum number of connections in the pool
-      minPoolSize: 5, // Minimum number of connections in the pool
+      maxPoolSize: 10,
+      minPoolSize: 5,
       socketTimeoutMS: 45000,
       serverSelectionTimeoutMS: 5000,
       retryWrites: true,
@@ -30,27 +29,23 @@ const connectDB = async () => {
       console.warn('Mongoose disconnected from MongoDB');
     });
 
-    // Graceful shutdown
-    process.on('SIGINT', async () => {
-      try {
-        await mongoose.disconnect();
-        console.log('Mongoose disconnected on app termination');
-        process.exit(0);
-      } catch (error) {
-        console.error('Error disconnecting:', error.message);
-        process.exit(1);
-      }
-    });
-
     return conn;
   } catch (error) {
     console.error(`✗ MongoDB Connection Error: ${error.message}`);
-    // Wait 5 seconds before retrying (optional)
-    setTimeout(() => {
-      console.log('Retrying connection...');
-      connectDB();
-    }, 5000);
+    throw error;
   }
 };
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  try {
+    await mongoose.disconnect();
+    console.log('Mongoose disconnected on app termination');
+    process.exit(0);
+  } catch (error) {
+    console.error('Error disconnecting:', error.message);
+    process.exit(1);
+  }
+});
 
 module.exports = connectDB;
